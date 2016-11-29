@@ -478,7 +478,7 @@ public class data {
         int i =0;
         try {
             Connection con=connect();
-            PreparedStatement pss = con.prepareStatement("insert into game(p1Id,p2Id,fromRequest) values((select user_id from users where Username = ?),(select user_id from users where Username=?),?)");
+            PreparedStatement pss = con.prepareStatement("insert into game(p1Id,p2Id,fromRequest,LastKnownState,LastMoveBy,MoveOrder) values((select user_id from users where Username = ?),(select user_id from users where Username=?),?,?,0,?)");
             if(new Random().nextInt(100)>50){
                 pss.setString(1,requestor);
                 pss.setString(2, requested);
@@ -487,6 +487,13 @@ public class data {
                 pss.setString(2,requestor);
             }
             pss.setInt(3, requestId);
+            String emptyBoard = "";
+            for(int b =0; b<42;b++){
+                emptyBoard+=0;
+            }
+            pss.setString(4, emptyBoard);
+            pss.setString(5,emptyBoard);
+                    
             if(this.gameCreated(requestId)==false){
                 Logger.getLogger(data.class.getName()).info("susposedly "+this.gameCreated(requestId));
                 if(pss.executeUpdate()>0){
@@ -548,5 +555,133 @@ public class data {
             Logger.getLogger(data.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
+    public ArrayList<ArrayList<Integer>> getGameBoard(int id) {
+        /*
+         1  2  3  4  5  6  7
+       1 01|02|03|04|05|06|07
+       2 08|09|10|11|12|13|14
+       3 15|16|17|18|19|20|21
+       4 22|23|24|25|26|27|28
+       5 29|30|31|32|33|34|35
+       6 36|37|38|39|40|41|42
+        */
+        ArrayList<ArrayList<Integer>> returns = new ArrayList<>();
+        try {
+            Connection con = connect();
+            PreparedStatement ps = con.prepareStatement("Select LastKnownState from game where GameId=?");
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            rs.last();
+            String boardString = rs.getString("LastKnownState");
+            
+            char[] boardCharArray =boardString.toCharArray();
+            
+            for(int i =0; i<boardCharArray.length;i+=7){
+                ArrayList<Integer> in = new ArrayList<>();
+                for(int x =0; x<7;x++){
+                   in.add( Integer.parseInt(String.valueOf(boardCharArray[i+x])));
+                }
+                returns.add(in);
+            }
+            
+            con.close();
+            rs.close();
+            ps.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(data.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return returns;
+    }
+
+    public int getPlayerOne(int gameId) {
+        int xs =0;
+        try {
+            Connection con = connect();
+            PreparedStatement ps = con.prepareStatement("select p1Id from game where GameId=?");
+            ps.setInt(1, gameId);
+            ResultSet rs = ps.executeQuery();
+            rs.last();
+            xs = rs.getInt("p1Id");
+            ps.close();
+            rs.close();
+            con.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(data.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return xs;
+    }
+    public int getPlayerTwo(int gameId) {
+        int xs =0;
+        try {
+            Connection con = connect();
+            PreparedStatement ps = con.prepareStatement("select p2Id from game where GameId=?");
+            ps.setInt(1, gameId);
+            ResultSet rs = ps.executeQuery();
+            rs.last();
+            xs = rs.getInt("p2Id");
+            ps.close();
+            rs.close();
+            con.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(data.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return xs;
+    }
+    public int getLastTurn(int gameId) {
+        int xs =0;
+        try {
+            Connection con = connect();
+            PreparedStatement ps = con.prepareStatement("select LastMoveBy from game where GameId=?");
+            ps.setInt(1, gameId);
+            ResultSet rs = ps.executeQuery();
+            rs.last();
+            xs = rs.getInt("LastMoveBy");
+            ps.close();
+            rs.close();
+            con.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(data.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return xs;
+    }
+
+    public ArrayList<Integer> getRecientGames() {
+        ArrayList<Integer> kk = new ArrayList<>();
+        try {
+            Connection con = connect();
+            PreparedStatement ps = con.prepareStatement("select GameId from game where (p1Id=(select user_id from users where Username =?) or p2Id =(select user_id from users where Username =?)) and active =0");
+            ps.setString(1, this.getUsernameFromToken());
+            ps.setString(2, this.getUsernameFromToken());
+            ResultSet rs = ps.executeQuery();
+            rs.beforeFirst();
+            while(rs.next()){
+                kk.add(rs.getInt("GameId"));
+            }
+            rs.close();
+            ps.close();
+            con.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(data.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return kk;
+    }
+
+    public int isGameActive(int id) {
+        int xs =0;
+        try {
+            Connection con = connect();
+            PreparedStatement ps = con.prepareStatement("select active from game where GameId=?");
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            rs.last();
+            xs = rs.getInt("active");
+            ps.close();
+            rs.close();
+            con.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(data.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return xs;
+    }
 }

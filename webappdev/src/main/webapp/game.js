@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-
+//document.getElementById('GameForMe').re
 var ss = document.getElementById("GameForMe").lastChild;
 var svgns = "http://www.w3.org/2000/svg";
 var svg = document.createElement("p");

@@ -117,6 +117,8 @@ public class MyVaadinUI extends UI {
                 
                 plv.getChatWindow().updateChats();
                 plv.getGameWindow().updateRequests();
+                plv.getGameWindow().updateGames();
+                plv.getGameWindow().checkForNewGames();
                 //Logger.getLogger(MyVaadinUI.class.getName()).log(Level.INFO,plv.getChatWindow().getUsersList().getValue().toString());
             }
             

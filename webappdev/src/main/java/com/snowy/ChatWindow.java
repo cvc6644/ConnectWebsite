@@ -39,10 +39,11 @@ public class ChatWindow extends Panel{
     public void updateChats(){
         for(Integer i:ht.keySet()){
            ht.get(i).update();
+           //figure out how to remove inactive chats
         }
     }
     public void addChat(int id){
-        if(!ht.containsKey(id)){
+        if(!ht.containsKey(id) && new data().isGameActive(id)==0){
             ht.put(id, new Chat(id));
             tabChats.addTab(ht.get(id), "Game "+(ht.size()-1));
         }

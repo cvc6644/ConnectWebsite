@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,16 +28,22 @@ import java.util.logging.Logger;
 public class Game extends VerticalLayout{
     private JavaScript js = JavaScript.getCurrent();
     private String path = "./src/main/webapp/game.js";
-    private int gameId;
+    private int gameId,p1,p2,currentTurn;
+    
+    private boolean hasUpdate =false;
+    public boolean rendered =false;
+    private ArrayList<ArrayList<Integer>> gameBoard;
     public Game(int id){ 
+        gameId = id;
+        
+       CheckForUpdate();
        this.setId("GameForMe");
-       js.addFunction("ballstothewall", (e)->{
-           js.execute("alert('hello')");
-       });
+       
        /*this.addComponent(new Button("c",e->{
            create();
            //js.execute("hello();");
        }));*/
+       
        this.setSizeFull();
       
     }
@@ -53,7 +60,59 @@ public class Game extends VerticalLayout{
             Logger.getLogger(Game.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    public void CheckForUpdate(){
+        data d = new data();
+        ArrayList<ArrayList<Integer>> tempGameBoard = d.getGameBoard(gameId);
+        if(!tempGameBoard.equals(gameBoard)){
+            hasUpdate =true;
+            gameBoard = tempGameBoard;
+            p1 = d.getPlayerOne(gameId);
+            p2 = d.getPlayerTwo(gameId);
+            currentTurn = d.getLastTurn(gameId)==0? p1: d.getLastTurn(gameId);
+        }
+        if(this.isConnectorEnabled()&& hasUpdate && !rendered){
+            Update();
+            hasUpdate =false;
+            rendered =true;
+        }else if(this.isConnectorEnabled() && !rendered){
+            renderCurrent();
+            this.rendered =true;
+        }else if(!this.isConnectorEnabled() && rendered){
+            rendered =false;
+        }
+        
+    }
+    public void renderCurrent(){
+        String s = ""+
+        "var ss = document.getElementById(\"GameForMe\").lastChild;"+
+        "var svgns = \"http://www.w3.org/2000/svg\";"+
+                
+        "var svg = document.createElementNS(svgns,\"svg\");\n" +
+                "svg.setAttribute('xmlns',svgns);"+
+                
+                //"svg.setAttributeNS(null,'version','1.1');"+
+                //"svg.setAttributeNS(svgns,'width','"+this.getWidth()+this.getWidthUnits().getSymbol()+"');"+
+                //"svg.setAttributeNS(null,'id','test')"+
+                //"svg.setAttributeNS(svgns,'width','"+this.getHeight()+this.getHeightUnits().getSymbol()+"');"+
+        "ss.appendChild(svg);";
+        js.execute(s);
+    }
     public void Update(){
-        create();
+        //create();
+        //Logger.getLogger(Game.class.getName()).info("ran update");
+        String s = ""+
+        "var ss = document.getElementById(\"GameForMe\").lastChild;"+
+        "var svgns = \"http://www.w3.org/2000/svg\";"+
+                
+        "var svg = document.createElementNS(svgns,\"svg\");\n" +
+                "svg.setAttribute('xmlns',svgns);"+
+                
+                "svg.setAttributeNS(svgns,'version','1.1');"+
+                //"svg.setAttributeNS(svgns,'width','"+this.getWidth()+this.getWidthUnits().getSymbol()+"');"+
+                //"svg.setAttributeNS(null,'id','test')"+
+                //"svg.setAttributeNS(svgns,'width','"+this.getHeight()+this.getHeightUnits().getSymbol()+"');"+
+        "ss.appendChild(svg);";
+        js.execute(s);
+        
     }
 }

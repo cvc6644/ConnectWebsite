@@ -104,5 +104,6 @@ public class Chat extends VerticalLayout{
             lastMessageId = Collections.max(hss.keySet());
         }
         tA.setReadOnly(true);
+        
     }
 }

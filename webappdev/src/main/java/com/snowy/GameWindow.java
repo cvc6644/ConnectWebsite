@@ -36,15 +36,17 @@ public class GameWindow extends Panel{
     public GameWindow(){
         games = new TabSheet();
         main = new TabSheet();
-        gm.put(0, new Game(100));
-        games.addTab(gm.get(0),"Test");
-        games.addTab(new Label("l"),"test2");
-        games.addSelectedTabChangeListener((TabSheet.SelectedTabChangeEvent e)->{
-            if(!e.getTabSheet().getSelectedTab().toString().equals("l")){
-                //Logger.getLogger(GameWindow.class.getName()).info(((Game)e.getTabSheet().getSelectedTab()).getGameId()+"");
-                ((Game)e.getTabSheet().getSelectedTab()).create();
+        games.addSelectedTabChangeListener(e->{
+           ((Game)e.getTabSheet().getSelectedTab()).rendered =false;
+        });
+        main.addSelectedTabChangeListener(e->{
+            if(!e.getTabSheet().getSelectedTab().equals(games)){
+                //((Game)games.getSelectedTab()).rendered=false;
+                games.iterator().forEachRemaining(s->{
+                    //Logger.getLogger(GameWindow.class.getName()).info(s.toString());
+                    ((Game)s).rendered=false;
+                });
             }
-            
         });
         main.setSizeFull();
         games.setSizeFull();
@@ -54,6 +56,13 @@ public class GameWindow extends Panel{
     }
     public void updateRequests(){
         rq.updateRequests();
+        
+        //Logger.getLogger(GameWindow.class.getName()).info(gm.get(0).isConnectorEnabled()+"");
+    }
+    public void updateGames(){
+        gm.forEach((k,v)->{
+            v.CheckForUpdate();
+        });
     }
 
     public void initGame(String requestor,String requested,int requestId) {
@@ -70,8 +79,18 @@ public class GameWindow extends Panel{
         //}
         
     }
+    public void checkForNewGames(){
+        ArrayList<Integer> availableGames = new data().getRecientGames();
+        availableGames.forEach(e->{
+            if(!gm.containsKey(e)){
+                addGame(e);
+            }
+        });
+    }
     public void addGame(int gameId){
         
+        gm.put(gameId, new Game(gameId));
+        games.addTab(gm.get(gameId),"Game "+(gm.size()));
     }
     public ArrayList<Integer> gameIds(){
         ArrayList<Integer> arr = new ArrayList<>();
